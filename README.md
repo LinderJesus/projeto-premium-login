@@ -126,13 +126,9 @@ Este sistema demonstra validações do lado do cliente apenas para fins de UX. E
 - [ ] Adicionar mais opções de login social
 - [ ] Criar API RESTful para autenticação
 
-## 📄 Licença
-
-Este projeto está licenciado sob a Licença MIT - veja o arquivo [LICENSE](LICENSE) para mais detalhes.
-
 ## 👨‍💻 Autor
 
-Criado por [Seu Nome] - [seu.email@exemplo.com]
+Criado por [Linder Jesus] - [linderpvpcontato@gmail.com]
 
 ---
 
