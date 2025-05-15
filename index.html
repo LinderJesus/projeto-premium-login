@@ -1,0 +1,511 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Premium Login System</title>
+  
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/main.css">
+  <link rel="stylesheet" href="css/animations.css">
+  <link rel="stylesheet" href="css/responsive.css">
+  <link rel="stylesheet" href="css/toast.css">
+  <link rel="stylesheet" href="css/improvements.css">
+  <link rel="stylesheet" href="css/device-specific.css">
+  
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&family=Montserrat:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- Theme Switcher CSS -->
+  <style>
+    .theme-switch {
+      position: absolute;
+      top: 20px;
+      right: 20px;
+      z-index: var(--z-fixed);
+    }
+    
+    .theme-switch-btn {
+      width: 40px;
+      height: 40px;
+      border-radius: 50%;
+      background: rgba(255, 255, 255, 0.1);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-primary);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s ease;
+    }
+    
+    .theme-switch-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: var(--shadow-md);
+    }
+    
+    .password-requirements {
+      font-size: 0.8rem;
+      color: var(--text-secondary);
+      margin-top: 0.5rem;
+    }
+    
+    .password-requirement {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.25rem;
+    }
+    
+    .requirement-icon {
+      width: 14px;
+      height: 14px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 8px;
+      background-color: var(--gray-light);
+    }
+    
+    .requirement-met .requirement-icon {
+      background-color: var(--success);
+      color: white;
+    }
+    
+    .auth-error {
+      background-color: rgba(208, 0, 0, 0.1);
+      border-left: 3px solid var(--error);
+      color: var(--error);
+      padding: 0.75rem 1rem;
+      margin-bottom: 1.5rem;
+      border-radius: var(--radius-sm);
+      font-size: 0.9rem;
+      display: none;
+    }
+    
+    .auth-error.visible {
+      display: block;
+      animation: shake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+    }
+    
+    .form-feedback {
+      font-size: 0.8rem;
+      margin-top: 0.25rem;
+    }
+    
+    .invalid-feedback {
+      color: var(--error);
+      display: none;
+    }
+    
+    .was-validated .form-control:invalid ~ .invalid-feedback {
+      display: block;
+    }
+    
+    .was-validated .form-control:invalid {
+      border-color: var(--error);
+    }
+    
+    .was-validated .form-control:valid {
+      border-color: var(--success);
+    }
+    
+    .forgot-password-modal {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: var(--z-modal);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+    }
+    
+    .forgot-password-modal.visible {
+      opacity: 1;
+      visibility: visible;
+    }
+    
+    .modal-content {
+      background: var(--bg-card);
+      border-radius: var(--radius-lg);
+      padding: var(--spacing-xl);
+      width: 90%;
+      max-width: 400px;
+      box-shadow: var(--shadow-xl);
+      position: relative;
+    }
+    
+    .modal-close {
+      position: absolute;
+      top: 15px;
+      right: 15px;
+      background: none;
+      border: none;
+      font-size: 1.2rem;
+      color: var(--text-secondary);
+      cursor: pointer;
+    }
+    
+    .progress-steps {
+      display: flex;
+      justify-content: space-between;
+      margin-bottom: var(--spacing-lg);
+      position: relative;
+    }
+    
+    .progress-steps::before {
+      content: '';
+      position: absolute;
+      top: 15px;
+      left: 0;
+      width: 100%;
+      height: 2px;
+      background: var(--gray-light);
+      z-index: 1;
+    }
+    
+    .step {
+      position: relative;
+      z-index: 2;
+      background: var(--bg-card);
+      width: 30px;
+      height: 30px;
+      border-radius: 50%;
+      border: 2px solid var(--gray-light);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-weight: bold;
+      color: var(--text-secondary);
+    }
+    
+    .step.active {
+      border-color: var(--primary);
+      color: var(--primary);
+    }
+    
+    .step.completed {
+      border-color: var(--success);
+      background: var(--success);
+      color: white;
+    }
+  </style>
+</head>
+<body data-theme="dark">
+  <!-- Particle Canvas Background -->
+  <canvas id="particle-canvas"></canvas>
+  
+  <!-- Background Elements -->
+  <div class="bg-effects">
+    <div class="bg-dots"></div>
+    <div class="bg-gradient"></div>
+    <div class="floating-shapes">
+      <div class="shape shape1"></div>
+      <div class="shape shape2"></div>
+      <div class="shape shape3"></div>
+      <div class="shape shape4"></div>
+    </div>
+  </div>
+  
+  <!-- Theme Switch Button -->
+  <div class="theme-switch">
+    <button class="theme-switch-btn" id="themeToggle" aria-label="Toggle dark/light mode">
+      <i class="fas fa-sun"></i>
+    </button>
+  </div>
+  
+  <!-- Main Content -->
+  <main class="auth-container">
+    <div class="auth-card">
+      <div class="auth-header">
+        <h1 class="auth-title typing-effect" data-typing-speed="70">Premium Login System</h1>
+        <p class="auth-subtitle">Enter your details to access your account</p>
+      </div>
+      
+      <!-- Login Form -->
+      <div id="loginPanel" class="auth-form fade-in">
+        <div id="authError" class="auth-error" aria-live="assertive"></div>
+        
+        <form id="loginForm" class="needs-validation">
+          <div class="form-group">
+            <label for="loginEmail" class="form-label">Email</label>
+            <div class="input-wrapper">
+              <input type="email" id="loginEmail" class="form-control" placeholder="Enter your email" required autocomplete="email" aria-describedby="emailHelp" aria-label="Email address">
+              <span class="input-icon" aria-hidden="true">
+                <i class="fas fa-envelope"></i>
+              </span>
+            </div>
+            <div id="emailHelp" class="invalid-feedback" role="alert">Por favor, insira um email válido.</div>
+          </div>
+          
+          <div class="form-group">
+            <label for="loginPassword" class="form-label">Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="loginPassword" class="form-control" placeholder="Enter your password" required autocomplete="current-password" aria-describedby="passwordHelp" aria-label="Password">
+              <span class="input-icon toggle-password" tabindex="0" role="button" aria-label="Show password" aria-pressed="false">
+                <i class="fas fa-eye"></i>
+              </span>
+            </div>
+            <div id="passwordHelp" class="invalid-feedback" role="alert">A senha deve ter pelo menos 6 caracteres.</div>
+          </div>
+          
+          <div class="form-group form-check">
+            <input type="checkbox" id="rememberMe" class="form-check-input" aria-label="Remember me">
+            <label for="rememberMe" class="form-check-label">Remember me</label>
+            <a href="#" id="forgotPasswordLink" class="forgot-password" aria-label="Forgot password">Forgot password?</a>
+          </div>
+          
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary btn-lg btn-block btn-ripple">
+              <i class="fas fa-sign-in-alt mr-2"></i> Sign In
+            </button>
+          </div>
+        </form>
+        
+        <div class="social-auth">
+          <div class="social-auth-divider"></div>
+          
+          <div class="social-buttons">
+            <a href="#" class="social-btn" data-provider="google">
+              <i class="fab fa-google"></i>
+            </a>
+            <a href="#" class="social-btn" data-provider="facebook">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="social-btn" data-provider="twitter">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="social-btn" data-provider="github">
+              <i class="fab fa-github"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="auth-switch">
+          <p>Don't have an account? <a href="#" id="switchToRegister">Sign up now</a></p>
+        </div>
+      </div>
+      
+      <!-- Register Form -->
+      <div id="registerPanel" class="auth-form hidden">
+        <div id="registerError" class="auth-error"></div>
+        
+        <form id="registerForm" class="needs-validation">
+          <div class="form-group">
+            <label for="registerUsername" class="form-label">Username</label>
+            <div class="input-wrapper">
+              <input type="text" id="registerUsername" class="form-control" placeholder="Choose a username" required>
+              <span class="input-icon">
+                <i class="fas fa-user"></i>
+              </span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="registerEmail" class="form-label">Email</label>
+            <div class="input-wrapper">
+              <input type="email" id="registerEmail" class="form-control" placeholder="Enter your email" required>
+              <span class="input-icon">
+                <i class="fas fa-envelope"></i>
+              </span>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="registerPassword" class="form-label">Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="registerPassword" class="form-control" placeholder="Create a strong password" required autocomplete="new-password" aria-describedby="passwordRequirements">
+              <span class="input-icon toggle-password" tabindex="0" role="button" aria-label="Show password">
+                <i class="fas fa-eye"></i>
+              </span>
+            </div>
+            
+            <div class="password-strength">
+              <div class="strength-meter">
+                <div class="strength-meter-fill"></div>
+              </div>
+              <span class="strength-text"></span>
+            </div>
+            
+            <div class="password-requirements" id="passwordRequirements">
+              <div class="password-requirement" data-requirement="length">
+                <span class="requirement-icon"><i class="fas fa-check"></i></span>
+                <span>Pelo menos 8 caracteres</span>
+              </div>
+              <div class="password-requirement" data-requirement="uppercase">
+                <span class="requirement-icon"><i class="fas fa-check"></i></span>
+                <span>Pelo menos 1 letra maiúscula</span>
+              </div>
+              <div class="password-requirement" data-requirement="lowercase">
+                <span class="requirement-icon"><i class="fas fa-check"></i></span>
+                <span>Pelo menos 1 letra minúscula</span>
+              </div>
+              <div class="password-requirement" data-requirement="number">
+                <span class="requirement-icon"><i class="fas fa-check"></i></span>
+                <span>Pelo menos 1 número</span>
+              </div>
+              <div class="password-requirement" data-requirement="special">
+                <span class="requirement-icon"><i class="fas fa-check"></i></span>
+                <span>Pelo menos 1 caractere especial</span>
+              </div>
+            </div>
+          </div>
+          
+          <div class="form-group">
+            <label for="confirmPassword" class="form-label">Confirm Password</label>
+            <div class="input-wrapper">
+              <input type="password" id="confirmPassword" class="form-control" placeholder="Confirm your password" required>
+              <span class="input-icon toggle-password">
+                <i class="fas fa-eye"></i>
+              </span>
+            </div>
+          </div>
+          
+          <div class="form-group form-check">
+            <input type="checkbox" id="agreeTerms" class="form-check-input" required>
+            <label for="agreeTerms" class="form-check-label">I agree to the <a href="#">Terms of Service</a> and <a href="#">Privacy Policy</a></label>
+          </div>
+          
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary btn-lg btn-block btn-ripple">
+              <i class="fas fa-user-plus mr-2"></i> Create Account
+            </button>
+          </div>
+        </form>
+        
+        <div class="social-auth">
+          <div class="social-auth-divider"></div>
+          
+          <div class="social-buttons">
+            <a href="#" class="social-btn" data-provider="google">
+              <i class="fab fa-google"></i>
+            </a>
+            <a href="#" class="social-btn" data-provider="facebook">
+              <i class="fab fa-facebook-f"></i>
+            </a>
+            <a href="#" class="social-btn" data-provider="twitter">
+              <i class="fab fa-twitter"></i>
+            </a>
+            <a href="#" class="social-btn" data-provider="github">
+              <i class="fab fa-github"></i>
+            </a>
+          </div>
+        </div>
+        
+        <div class="auth-switch">
+          <p>Already have an account? <a href="#" id="switchToLogin">Sign in</a></p>
+        </div>
+      </div>
+    </div>
+  </main>
+  
+  <!-- Toast Container -->
+  <div class="toast-container"></div>
+  
+  <!-- Forgot Password Modal -->
+  <div id="forgotPasswordModal" class="forgot-password-modal">
+    <div class="modal-content">
+      <button class="modal-close" id="closeModal">
+        <i class="fas fa-times"></i>
+      </button>
+      <h2>Recuperar Senha</h2>
+      
+      <div class="progress-steps">
+        <div class="step active" data-step="1">1</div>
+        <div class="step" data-step="2">2</div>
+        <div class="step" data-step="3">3</div>
+      </div>
+      
+      <!-- Step 1: Email Verification -->
+      <div class="recovery-step" data-step="1">
+        <p>Digite seu email para receber um código de verificação</p>
+        <form id="recoveryEmailForm">
+          <div class="form-group">
+            <label for="recoveryEmail" class="form-label">Email</label>
+            <div class="input-wrapper">
+              <input type="email" id="recoveryEmail" class="form-control" placeholder="Seu email" required>
+              <span class="input-icon">
+                <i class="fas fa-envelope"></i>
+              </span>
+            </div>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary btn-block">
+              Enviar código de verificação
+            </button>
+          </div>
+        </form>
+      </div>
+      
+      <!-- Step 2: Code Verification -->
+      <div class="recovery-step hidden" data-step="2">
+        <p>Digite o código de verificação enviado para seu email</p>
+        <form id="verificationCodeForm">
+          <div class="form-group">
+            <label for="verificationCode" class="form-label">Código de Verificação</label>
+            <div class="input-wrapper">
+              <input type="text" id="verificationCode" class="form-control" placeholder="000000" required maxlength="6" pattern="[0-9]{6}">
+              <span class="input-icon">
+                <i class="fas fa-key"></i>
+              </span>
+            </div>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary btn-block">
+              Verificar código
+            </button>
+          </div>
+          <p class="text-center">
+            <a href="#" id="resendCode">Reenviar código</a>
+          </p>
+        </form>
+      </div>
+      
+      <!-- Step 3: New Password -->
+      <div class="recovery-step hidden" data-step="3">
+        <p>Crie uma nova senha</p>
+        <form id="newPasswordForm">
+          <div class="form-group">
+            <label for="newPassword" class="form-label">Nova Senha</label>
+            <div class="input-wrapper">
+              <input type="password" id="newPassword" class="form-control" placeholder="Nova senha" required>
+              <span class="input-icon toggle-password">
+                <i class="fas fa-eye"></i>
+              </span>
+            </div>
+          </div>
+          <div class="form-group">
+            <label for="confirmNewPassword" class="form-label">Confirmar Nova Senha</label>
+            <div class="input-wrapper">
+              <input type="password" id="confirmNewPassword" class="form-control" placeholder="Confirme a nova senha" required>
+              <span class="input-icon toggle-password">
+                <i class="fas fa-eye"></i>
+              </span>
+            </div>
+          </div>
+          <div class="form-group">
+            <button type="submit" class="btn btn-primary btn-block">
+              Redefinir senha
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+  
+  <!-- Scripts -->
+  <script src="js/animations.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/main.js"></script>
+  <script src="js/theme.js"></script>
+</body>
+</html>
